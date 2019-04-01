@@ -1,0 +1,103 @@
+ <!DOCTYPE HTML>
+<html>
+	<head>
+	<title>Pengolahan Citra Digital</title>
+	</head>
+
+	<body>
+	<input type="file" name="gambar" onchange="readURL(this)">
+	<img id="gambar" height="480" width="640" src="#" alt="Gambar Kosong"/>
+
+	<script src="jquery-3.3.1.min.js"></script>
+
+	<script type="text/javascript">
+		
+		function getImagePixel(){
+			var img = new Image(); 
+			img.src = $('#gambar').attr('src');
+			
+			var data = getLengthPixel(img);
+			console.log(img);
+		
+		}
+		
+		function getLengthPixel(img){
+			var width  = img.naturalWidth;
+			var height = img.naturalHeight;
+			return {width: width, 
+					 height : height};
+		}
+	
+		function getPixel(url, x, y) {
+		  var img = new Image();
+		  img.src = url;
+		  var canvas = document.createElement('canvas');
+		  var context = canvas.getContext('2d');
+		  context.drawImage(img, 0, 0);
+		  return context.getImageData(x, y, 1, 1).data;
+		}
+		
+		function setPixel(x,y, xn, xb){
+		  var img = new Image();
+		  img.src = url;
+		  var canvas = document.createElement('canvas');
+		  var context = canvas.getContext('2d');
+		  context.drawImage(img, 0, 0);
+		  context.putImageData(x, y, xn, yn).data; // XN = X New, X = X posisinya
+		}
+		
+		function histogram(url){
+			var x = 0;
+			while(x < 480){
+				var y = 0;
+				while(y < 640){
+					var data = getPixel(url,x,y);
+					console.log(data);
+					y++;
+				}
+				x++;
+			}
+			var data = getPixel(url,480,640);
+					console.log(data);
+			
+		}
+		
+		function greyscale(img){
+			for(x = 0; x < img.length(); x++){
+				y = 0;
+				while(y < img.width()){
+					pixel = getPixel(img, x, y);
+					
+					
+					<!-- var xn =  -->
+					<!-- var xb =  -->
+					setPixel(x, y, xn ,xb);
+					y++;
+				}
+			}
+		}
+		
+		function readURL(input) {
+		  if (input.files && input.files[0]) {
+			var reader = new FileReader();
+			reader.onload = function (e) {
+			  $('#gambar')
+				.attr('src', e.target.result);
+				
+				var data = getPixel(e.target.result, 130,150);
+				
+				histogram(e.target.result);
+				
+				//alert(data);
+			};
+			getImagePixel();
+			reader.readAsDataURL(input.files[0]);
+		  }
+		}
+	
+	</script>
+
+	</body>
+
+
+</html> 
