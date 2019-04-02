@@ -13,24 +13,49 @@
       <input type="file" multiple="false" accept="image/*" id="finput" onchange="upload()" >
     </p>
     <p>
-      <input type="button" value="Make Grayscale" onclick="makeGray()" >
+      <input type="button" value="Normal Image" id="normalImage" >
     </p>
     <p>
-      <input type="input" id="contrast">
+      <input type="button" value="Make Grayscale"  onclick="makeGray()" >
+    </p>
+    <p>
+      <div class="slidecontainer">
+        Brightness :
+        <input type="range" min="-10" max="10" value="0" class="slider" id="brightness">
+      </div>
     </p>
 
 
 	<script src="jquery-3.3.1.min.js"></script>
   <script src="https://www.dukelearntoprogram.com/course1/common/js/image/SimpleImage.js" ></script>
 
+
 	<script type="text/javascript">
     var image = null;
+    var originalImage = null;
+    var valueBrightnessBefore = 0;
+    var totalRed = new Array(256).fill(0);
+    var totalGreen = new Array(256).fill(0);
+    var totalBlue = new Array(256).fill(0);
+
+    $('#brightness').on('input',function(){
+        var value = $(this).val();
+        makeBrightness(value, valueBrightnessBefore, originalImage);
+        valueBrightnessBefore = value;
+    });
+
+    $('#normalImage').on('click',function(){
+      alert('ada');
+      normalImage();
+    });
+
 
     function upload() {
       //Get input from file input
       var fileinput = document.getElementById("finput");
       //Make new SimpleImage from file input
       image = new SimpleImage(fileinput);
+      originalImage = image;
       //Get canvas
       var canvas = document.getElementById("can");
       //Draw image on canvas
@@ -44,9 +69,28 @@
         pixel.setRed(avg);
         pixel.setGreen(avg);
         pixel.setBlue(avg);
+        alert(pixel);
       }
       //display new image
       var canvas = document.getElementById("can");
+      image.drawTo(canvas);
+    }
+
+    function makeBrightness(value, valueBrightnessBefore, originalImage){
+      var brightnessBefore = 255 * ((valueBrightnessBefore / 100));
+      var brightness = (255 * ((value) / 100)) - brightnessBefore;
+      image = originalImage;
+      for (var pixel of image.values()) {
+        pixel.setRed(pixel.getRed() +  brightness );
+        pixel.setGreen(pixel.getGreen() + brightness );
+        pixel.setBlue(pixel.getBlue() + brightness );
+      }
+      var canvas = document.getElementById("can");
+      image.drawTo(canvas);
+    }
+
+    function normalImage(){
+      image = originalImage;
       image.drawTo(canvas);
     }
 
