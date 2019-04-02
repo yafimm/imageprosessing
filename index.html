@@ -24,24 +24,29 @@
         <input type="range" min="-10" max="10" value="0" class="slider" id="brightness">
       </div>
     </p>
+    <p>
+      <div id="chartContainer" style="height: 300px; width: 33%;"></div>
+      <input type="button" value="Show Histogram" id="showHistogram">
+    </p>
 
 
 	<script src="jquery-3.3.1.min.js"></script>
   <script src="https://www.dukelearntoprogram.com/course1/common/js/image/SimpleImage.js" ></script>
-
+  <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 
 	<script type="text/javascript">
-    var image = null;
-    var originalImage = null;
-    var valueBrightnessBefore = 0;
-    var totalRed = new Array(256).fill(0);
-    var totalGreen = new Array(256).fill(0);
-    var totalBlue = new Array(256).fill(0);
+    var image = null; // Deklarasi var image untuk menyimpan image dari input
+    var originalImage = null; // tempat menampung image original
+    var valueBrightnessBefore = 0; // Variable menampung nilai brightness sebelumnya
+    var totalRed = new Array(256).fill(0); // untuk menampuang banyaknya pixel warna merah dalam bentuk array 0 -255
+    var totalGreen = new Array(256).fill(0); // untuk menampuang banyaknya pixel warna hijau dalam bentuk array 0 -255
+    var totalBlue = new Array(256).fill(0); // untuk menampuang banyaknya pixel warna biru dalam bentuk array 0 -255
+    var dps = []; // untukk menyimpan data array hijau/merah/biru yang akan digunakan pada histogram
 
-    $('#brightness').on('input',function(){
-        var value = $(this).val();
-        makeBrightness(value, valueBrightnessBefore, originalImage);
-        valueBrightnessBefore = value;
+    $('#brightness').on('input',function(){ // Jika inputan brightness digeser, maka akan melakukan aksi didalamnya yaitu ...
+        var value = $(this).val(); // mengambil nilai brightness
+        makeBrightness(value, valueBrightnessBefore, originalImage); // memanggil fungsi yang merubah brightness gambar
+        valueBrightnessBefore = value; // menyimpan nilai brightness yang sekarang
     });
 
     $('#normalImage').on('click',function(){
@@ -49,6 +54,9 @@
       normalImage();
     });
 
+    $('#showHistogram').on('click', function(){ // jika show histogram di klik maka akan..
+      showHistogram(); // memanggil fungsi show histogram
+    });
 
     function upload() {
       //Get input from file input
@@ -62,32 +70,87 @@
       image.drawTo(canvas);
     }
 
+    // Function untuk merubah gambar jadi grayscale
     function makeGray() {
-      //change all pixels of image to gray
+      //loopoing untuk merubah pixel menjadi gray
       for (var pixel of image.values()) {
-        var avg = (pixel.getRed()+pixel.getGreen()+pixel.getBlue())/3;
+        var avg = (pixel.getRed()+pixel.getGreen()+pixel.getBlue())/3; // rumus grayscale
         pixel.setRed(avg);
         pixel.setGreen(avg);
         pixel.setBlue(avg);
-        alert(pixel);
       }
-      //display new image
+      //Menampilkan gambar baru
       var canvas = document.getElementById("can");
       image.drawTo(canvas);
     }
 
+    //fungsi untuk merubah brightness gambar
     function makeBrightness(value, valueBrightnessBefore, originalImage){
-      var brightnessBefore = 255 * ((valueBrightnessBefore / 100));
-      var brightness = (255 * ((value) / 100)) - brightnessBefore;
+      var brightnessBefore = 255 * ((valueBrightnessBefore / 100)); // rumus nilai brightness sebelumnya
+      var brightness = (255 * ((value) / 100)) - brightnessBefore; // rumus nilai brightness sekarang dikurang yang sebelumnya, sehingga tidak terjadi pemutihan/penghitaman gambar
       image = originalImage;
+      //looping untuk merubah brightness gambar
       for (var pixel of image.values()) {
         pixel.setRed(pixel.getRed() +  brightness );
         pixel.setGreen(pixel.getGreen() + brightness );
         pixel.setBlue(pixel.getBlue() + brightness );
       }
+
+      //Menampilkan gambar baru
       var canvas = document.getElementById("can");
       image.drawTo(canvas);
     }
+
+    //fungsi untuk menampilkan histogram
+    function showHistogram(){
+      //looping setiap pixel, dan nilai nilai ditaruh di dalam array warna, untuk mengatahui jumlah warnanya
+      for (var pixel of image.values()) {
+        var avg = (pixel.getRed()+pixel.getGreen()+pixel.getBlue())/3;
+        totalRed[pixel.getRed()]++ ;
+        totalGreen[pixel.getGreen()]++ ;
+        totalBlue[pixel.getBlue()]++ ;
+      }
+
+      //mendekrarasikan chart menggunakan library canvasjs
+      var chart = new CanvasJS.Chart("chartContainer",{
+       	title :{
+       		text: "Histogram Gambar"
+       	},
+       	axisX: {
+       		title: "Total Bit"
+       	},
+       	axisY: {
+       		title: "Units"
+       	},
+       	data: []
+       });
+
+       //fungsi untuk memasukkan array ke dalam chartnya
+       function parseDataPoints (datapixel) {
+           for (var i = 0; i <= datapixel.length; i++)
+           dps.push({y: datapixel[i]});
+       };
+
+
+       // looping penyimpanan data dalam 1 chart
+       for(var i = 0; i<3; i++){
+         dps = [];
+         if(i == 0){
+           var datapixel = totalBlue;
+         }else if(i == 1){
+           var datapixel = totalRed;
+         }else{
+           var datapixel = totalGreen;
+         }
+         parseDataPoints(datapixel);
+         chart.options.data.push({
+            type: "line",
+            dataPoints: dps
+         });
+          chart.render();
+  
+       }
+   }
 
     function normalImage(){
       image = originalImage;
